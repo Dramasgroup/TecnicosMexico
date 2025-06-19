@@ -96,7 +96,7 @@ const modelConfigs = [
     { name: 'cabina', path: 'models/dir-cabina.glb', position: [0, 1.5, -25], rotation: [0, Math.PI, 0] },
     { name: 'techopar', path: 'models/techopar.glb', position: [0, 25, 0], rotation: [0, Math.PI, 0] },
     { name: 'pilar', path: 'models/pilar.glb', position: [-12, 0, -5], scale: [1, 1, 1] },
-    { name: 'pilariz', path: 'models/pilariz.glb', position: [12, 0, -5], scale: [1, 1, 1] },
+    { name: 'pilariz', path: 'models/pilariz.glb', position: [0, 0, 0], scale: [1, 1, 1] },
     { name: 'director', path: 'models/dir-cabina1.glb', position: [0, 4.5, -1.5], rotation: [0, Math.PI, 0] },
     { name: 'escenario', path: 'models/asdf.glb', position: [0, 0, 0], scale: [1.2, 1, 1.2] },
     { name: 'fachada', path: 'models/fach-muro1.glb', position: [0, 15, -25] },
