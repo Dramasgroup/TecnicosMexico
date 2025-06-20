@@ -1,240 +1,410 @@
-// Función para verificar WebGL sin depender de Detector
-function isWebGLAvailable() {
-    try {
-        const canvas = document.createElement('canvas');
-        return !!(
-            window.WebGLRenderingContext &&
-            (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-        );
-    } catch (e) {
-        return false;
-    }
-}
+// main.js
+// Importar Three.js y ejemplos como módulos ES6 desde CDN (versión fija 0.150.1)
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/DRACOLoader.js';
+import Stats from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/libs/stats.module.js';
 
-// Elementos UI
+// =============================================
+// REFERENCIAS DOM
+// =============================================
 const loaderElement = document.getElementById('loader');
+const loaderText = document.getElementById('loader-text');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 const errorPanel = document.getElementById('error-panel');
 const statsContainer = document.getElementById('stats');
+const canvas = document.getElementById('scene');
 
-// Verificar WebGL
-if (!isWebGLAvailable()) {
-    const errorMessage = 'Tu navegador no soporta WebGL. Actualiza o usa Chrome/Firefox.';
-    document.getElementById('error-panel').innerHTML = `
-        <strong>Error Crítico:</strong> ${errorMessage}
-        <button class="retry-btn" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Reintentar
-        </button>
-    `;
-    document.getElementById('error-panel').style.display = 'block';
-    throw new Error(errorMessage);
-}
+let scene, camera, renderer, controls, stats;
+let mainLight;
+let anyModelLoaded = false; // para fallback
 
-// Escena principal
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a1a);
-scene.fog = new THREE.Fog(0x0a0a1a, 10, 100);
+// =============================================
+// CONFIGURACIÓN DE MODELOS
+// =============================================
+// Ajusta las rutas y extensiones reales. Asegúrate de que existan.
+const butacasConfig = {
+  path: 'models/butaca-s.glb',
+  rows: 8,
+  cols: 20,
+  spacing: 1.8,
+  startPosition: [0, 0, 15],
+  scale: [1.5, 1.5, 1.5]
+};
 
-// Cámara
-const camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-);
-camera.position.set(0, 8, 15);
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById('scene'),
-    antialias: true,
-    alpha: true,
-    powerPreference: 'high-performance'
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
-
-// Controles
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.screenSpacePanning = false;
-controls.minDistance = 5;
-controls.maxDistance = 30;
-controls.autoRotate = false;
-
-// Iluminación
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-scene.add(ambientLight);
-
-const mainLight = new THREE.DirectionalLight(0xffeedd, 2);
-mainLight.position.set(5, 15, 10);
-mainLight.castShadow = true;
-mainLight.shadow.mapSize.width = 1024;
-mainLight.shadow.mapSize.height = 1024;
-mainLight.shadow.camera.near = 1;
-mainLight.shadow.camera.far = 50;
-mainLight.shadow.normalBias = 0.05;
-scene.add(mainLight);
-
-const fillLight = new THREE.DirectionalLight(0x6688cc, 0.8);
-fillLight.position.set(-5, 5, -5);
-scene.add(fillLight);
-
-const backLight = new THREE.DirectionalLight(0x445588, 0.5);
-backLight.position.set(0, 5, -10);
-scene.add(backLight);
-
-// Configuración de modelos
-const modelConfigs = [
-    { name: 'cabina', path: 'models/dir-cabina.glb', position: [0, 1.5, -25], rotation: [0, Math.PI, 0] },
-    { name: 'techopar', path: 'models/techopar.glb', position: [0, 25, 0], rotation: [0, Math.PI, 0] },
-    { name: 'pilar', path: 'models/pilar.glb', position: [-12, 0, -5], scale: [1, 1, 1] },
-    { name: 'pilariz', path: 'models/pilariz.glb', position: [12, 0, -5], scale: [1, 1, 1] },
-    { name: 'director', path: 'models/dir-cabina1.glb', position: [0, 4.5, -1.5], rotation: [0, Math.PI, 0] },
-    { name: 'escenario', path: 'models/asdf.glb', position: [0, 0, 0], scale: [1.2, 1, 1.2] },
-    { name: 'fachada', path: 'models/fach-muro1.glb', position: [0, 15, -25] },
-    { name: 'focos', path: 'models/focos.glb', position: [0, 5.5, -1.5], scale: [0.8, 0.8, 0.8] }
+// driveModels: reemplaza con tus URLs o rutas locales
+const driveModels = [
+  {
+    name: 'cabina',
+    path: 'models/cabina.glb',
+    position: [0, 1.5, -25],
+    rotation: [0, Math.PI, 0],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'techopar',
+    path: 'models/techopar-s.glb',
+    position: [0, 25, 0],
+    rotation: [0, Math.PI, 0],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'pilar',
+    path: 'models/pilar-s.gltf',
+    position: [-12, 0, -5],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'pilariz',
+    path: 'models/pilariz-s.glb',
+    position: [12, 0, -15],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'director',
+    path: 'models/dir-s.glb',
+    position: [0, 4.5, -1.5],
+    rotation: [0, Math.PI, 0],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'escenario',
+    path: 'models/escenario.glb',
+    position: [0, 0, 0],
+    scale: [1.2, 1, 1.2]
+  },
+  {
+    name: 'fachada',
+    path: 'models/fachada.glb',
+    position: [0, 15, -25],
+    scale: [1, 1, 1]
+  },
+  {
+    name: 'focos',
+    path: 'models/focos.glb',
+    position: [0, 5.5, -1.5],
+    scale: [0.8, 0.8, 0.8]
+  }
 ];
 
-// Cargador Draco
-const dracoLoader = new THREE.DRACOLoader();
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-dracoLoader.setDecoderConfig({ type: 'js' });
+// =============================================
+// UTILIDADES
+// =============================================
+function isWebGLAvailable() {
+  try {
+    const canvasTest = document.createElement('canvas');
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvasTest.getContext('webgl') || canvasTest.getContext('experimental-webgl'))
+    );
+  } catch (e) {
+    return false;
+  }
+}
 
-const gltfLoader = new THREE.GLTFLoader();
-gltfLoader.setDRACOLoader(dracoLoader);
-
-// Estadísticas
-const stats = new Stats();
-stats.domElement.style.position = 'absolute';
-stats.domElement.style.top = '0px';
-statsContainer.appendChild(stats.domElement);
-
-// Funciones de utilidad
 function updateProgress(percent, message) {
-    const clampedPercent = Math.min(100, Math.max(0, percent));
-    progressFill.style.width = `${clampedPercent}%`;
-    progressText.textContent = `${Math.round(clampedPercent)}%`;
-    if (message) document.querySelector('.loader-text').textContent = message;
+  const clamped = Math.min(100, Math.max(0, percent));
+  progressFill.style.width = `${clamped}%`;
+  progressText.textContent = `${Math.round(clamped)}%`;
+  if (message) loaderText.textContent = message;
 }
 
 function showError(message, isFatal = false) {
-    errorPanel.style.display = 'block';
-    errorPanel.innerHTML = `
-        <strong>${isFatal ? 'Error Crítico' : 'Advertencia'}:</strong> ${message}
-        <button class="retry-btn" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Reintentar
-        </button>
-    `;
-    if (isFatal) loaderElement.style.background = 'rgba(10, 10, 26, 0.9)';
+  errorPanel.style.display = 'block';
+  errorPanel.innerHTML = `
+    <strong>${isFatal ? 'Error Crítico' : 'Advertencia'}:</strong> ${message}
+    <button class="retry-btn" onclick="window.location.reload()">
+      <i class="fas fa-sync-alt"></i> Reintentar
+    </button>
+  `;
+  if (isFatal) loaderElement.style.background = 'rgba(10, 10, 26, 0.9)';
 }
 
 function hideLoader() {
-    loaderElement.style.opacity = '0';
-    setTimeout(() => loaderElement.style.display = 'none', 500);
+  loaderElement.style.opacity = '0';
+  setTimeout(() => loaderElement.style.display = 'none', 500);
 }
 
-// Carga de modelos
-async function loadAllModels() {
-    try {
-        updateProgress(0, 'Iniciando carga...');
-        
-        for (let i = 0; i < modelConfigs.length; i++) {
-            const config = modelConfigs[i];
-            await new Promise((resolve) => {
-                gltfLoader.load(
-                    config.path,
-                    (gltf) => {
-                        const model = gltf.scene;
-                        if (config.position) model.position.set(...config.position);
-                        if (config.rotation) model.rotation.set(...config.rotation);
-                        if (config.scale) model.scale.set(...config.scale);
-                        
-                        model.traverse(child => {
-                            if (child.isMesh) {
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                                if (child.material) {
-                                    child.material.depthWrite = true;
-                                    child.material.vertexColors = false;
-                                }
-                            }
-                        });
-                        
-                        scene.add(model);
-                        updateProgress(((i + 1) / modelConfigs.length * 100), `Cargando ${config.name}...`);
-                        resolve();
-                    },
-                    (xhr) => {
-                        const percent = (i / modelConfigs.length * 100) + (xhr.loaded / xhr.total * (100 / modelConfigs.length));
-                        updateProgress(percent, `Cargando ${config.name}...`);
-                    },
-                    (error) => {
-                        console.error(`Error cargando ${config.name}:`, error);
-                        showError(`Error cargando ${config.name}: ${error.message || 'Error de red'}`);
-                        resolve();
-                    }
-                );
-            });
+// =============================================
+// INICIALIZAR ESCENA, CÁMARA, RENDERER, CONTROLES, ILUMINACIÓN, STATS
+// =============================================
+function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a1a);
+  scene.fog = new THREE.Fog(0x0a0a1a, 10, 100);
+
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 8, 15);
+
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance'
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+
+  // OrbitControls
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 5;
+  controls.maxDistance = 30;
+  controls.autoRotate = false;
+
+  // Stats
+  stats = Stats();
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.top = '0px';
+  statsContainer.appendChild(stats.domElement);
+
+  // Iluminación
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+  scene.add(ambientLight);
+
+  mainLight = new THREE.DirectionalLight(0xffeedd, 2);
+  mainLight.position.set(5, 15, 10);
+  mainLight.castShadow = true;
+  mainLight.shadow.mapSize.width = 1024;
+  mainLight.shadow.mapSize.height = 1024;
+  mainLight.shadow.camera.near = 1;
+  mainLight.shadow.camera.far = 50;
+  mainLight.shadow.normalBias = 0.05;
+  scene.add(mainLight);
+
+  const fillLight = new THREE.DirectionalLight(0x6688cc, 0.8);
+  fillLight.position.set(-5, 5, -5);
+  scene.add(fillLight);
+
+  const backLight = new THREE.DirectionalLight(0x445588, 0.5);
+  backLight.position.set(0, 5, -10);
+  scene.add(backLight);
+
+  window.addEventListener('resize', onWindowResize);
+}
+
+// =============================================
+// CREAR BUTACAS (fallback si falla, se ignora)
+// =============================================
+function createButacas() {
+  return new Promise((resolve) => {
+    // Intentar cargar; si falla, se ignora y resolve()
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    dracoLoader.setDecoderConfig({ type: 'js' });
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+
+    updateProgress(0, 'Cargando modelo de butacas...');
+
+    gltfLoader.load(
+      butacasConfig.path,
+      (gltf) => {
+        anyModelLoaded = true;
+        const model = gltf.scene;
+        const rows = butacasConfig.rows;
+        const cols = butacasConfig.cols;
+        const spacing = butacasConfig.spacing;
+        const startX = - (cols * spacing) / 3;
+        const startZ = butacasConfig.startPosition[2];
+
+        model.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        for (let row = 0; row < rows; row++) {
+          const rowCols = cols - row;
+          const offsetX = row * spacing / 2;
+          for (let col = 0; col < rowCols; col++) {
+            const butaca = model.clone();
+            butaca.position.set(
+              startX + col * spacing + offsetX,
+              butacasConfig.startPosition[1],
+              startZ + row * spacing
+            );
+            butaca.scale.set(...butacasConfig.scale);
+            scene.add(butaca);
+          }
         }
-        
-        return true;
-    } catch (error) {
-        console.error('Error crítico:', error);
-        showError(`Error crítico: ${error.message}`, true);
-        return false;
+        updateProgress(20, 'Butacas creadas');
+        resolve();
+      },
+      (xhr) => {
+        if (xhr.total) {
+          const percent = (xhr.loaded / xhr.total) * 20;
+          updateProgress(percent, 'Cargando modelo de butacas...');
+        }
+      },
+      (error) => {
+        console.warn('No se pudieron cargar butacas:', error);
+        // Mostrar en consola, pero no bloquea
+        resolve();
+      }
+    );
+  });
+}
+
+// =============================================
+// CARGA DE MODELOS ADICIONALES (Drive o locales)
+// =============================================
+function loadDriveModels() {
+  return new Promise((resolve) => {
+    const total = driveModels.length;
+    if (total === 0) {
+      resolve();
+      return;
     }
-}
+    let loadedCount = 0;
+    updateProgress(20, 'Cargando modelos adicionales...');
 
-// Eventos
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    const isMobile = window.innerWidth < 768;
-    renderer.setPixelRatio(isMobile ? 1 : Math.min(2, window.devicePixelRatio));
-    mainLight.shadow.mapSize.set(isMobile ? 512 : 1024);
-});
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    dracoLoader.setDecoderConfig({ type: 'js' });
 
-// Animación
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-    stats.update();
-}
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
 
-// Inicialización
-async function init() {
-    try {
-        const minLoaderTime = 3000;
-        const startTime = performance.now();
-        
-        const success = await loadAllModels();
-        
-        const elapsed = performance.now() - startTime;
-        const remaining = Math.max(0, minLoaderTime - elapsed);
-        
-        setTimeout(() => {
-            if (success) {
-                camera.position.set(0, 15, 40);
-                camera.lookAt(0, 5, 15);
-                hideLoader();
+    driveModels.forEach(config => {
+      if (!config.path || config.path.trim() === '') {
+        console.warn(`Ruta vacía para modelo ${config.name}, omitiendo.`);
+        loadedCount++;
+        if (loadedCount === total) resolve();
+        return;
+      }
+      gltfLoader.load(
+        config.path,
+        (gltf) => {
+          anyModelLoaded = true;
+          const model = gltf.scene;
+          if (config.position) model.position.set(...config.position);
+          if (config.rotation) model.rotation.set(...config.rotation);
+          if (config.scale) model.scale.set(...config.scale);
+
+          model.traverse(child => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.depthWrite = true;
+                child.material.vertexColors = false;
+              }
             }
-        }, remaining);
-    } catch (error) {
-        console.error('Error en init:', error);
-        showError(`Error de inicialización: ${error.message}`, true);
-    }
+          });
+
+          scene.add(model);
+          loadedCount++;
+          const percent = 20 + (loadedCount / total * 80);
+          updateProgress(percent, `Cargando ${config.name}...`);
+          if (loadedCount === total) resolve();
+        },
+        (xhr) => {
+          if (xhr.total) {
+            const percent = 20 + ((loadedCount + xhr.loaded / xhr.total) / total * 80);
+            updateProgress(percent, `Cargando ${config.name}...`);
+          }
+        },
+        (error) => {
+          console.warn(`No se pudo cargar ${config.name}:`, error);
+          loadedCount++;
+          if (loadedCount === total) resolve();
+        }
+      );
+    });
+  });
 }
 
-// Iniciar
+// =============================================
+// FALLBACK: agregar un cubo si no se cargó ningún modelo
+// =============================================
+function addFallbackCube() {
+  const geometry = new THREE.BoxGeometry(2, 2, 2);
+  const material = new THREE.MeshStandardMaterial({ color: 0x44aa88 });
+  const cube = new THREE.Mesh(geometry, material);
+  cube.castShadow = true;
+  cube.receiveShadow = true;
+  scene.add(cube);
+  anyModelLoaded = true;
+  // Ajustar cámara para ver el cubo
+  camera.position.set(5, 5, 5);
+  camera.lookAt(cube.position);
+}
+
+// =============================================
+// ANIMACIÓN Y REDIMENSIÓN
+// =============================================
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+  stats.update();
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const isMobile = window.innerWidth < 768;
+  renderer.setPixelRatio(isMobile ? 1 : Math.min(2, window.devicePixelRatio));
+  if (mainLight && mainLight.shadow && mainLight.shadow.map) {
+    const newSize = isMobile ? 512 : 1024;
+    mainLight.shadow.mapSize.set(newSize, newSize);
+  }
+}
+
+// =============================================
+// INICIALIZACIÓN PRINCIPAL
+// =============================================
+async function init() {
+  try {
+    if (!isWebGLAvailable()) {
+      const msg = 'Tu navegador no soporta WebGL. Actualiza o usa Chrome/Firefox.';
+      showError(msg, true);
+      throw new Error(msg);
+    }
+    initScene();
+    const minLoaderTime = 3000;
+    const startTime = performance.now();
+
+    await createButacas();
+    await loadDriveModels();
+
+    // Si no se cargó nada, agregar cubo de fallback
+    if (!anyModelLoaded) {
+      console.warn('No se cargó ningún modelo, mostrando cubo de fallback.');
+      addFallbackCube();
+    }
+
+    const elapsed = performance.now() - startTime;
+    const remaining = Math.max(0, minLoaderTime - elapsed);
+    setTimeout(() => {
+      // Vista final: ajusta según escena real
+      if (anyModelLoaded) {
+        // Puedes personalizar la posición inicial de la cámara para tu escena:
+        camera.position.set(0, 15, 40);
+        camera.lookAt(0, 5, 15);
+      }
+      hideLoader();
+    }, remaining);
+
+    animate();
+  } catch (error) {
+    console.error('Error en init:', error);
+    showError(`Error de inicialización: ${error.message}`, true);
+  }
+}
+
+// Arrancar la app
 init();
-animate();

@@ -1,130 +1,190 @@
+/* Reset sencillo */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body {
-    overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #000;
-    color: #fff;
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #000;
+  color: #fff;
 }
 
+/* Canvas ocupa toda la pantalla */
 #scene {
-    display: block;
-    width: 100vw;
-    height: 100vh;
+  display: block;
+  width: 100vw;
+  height: 100vh;
 }
 
+/* Overlay de carga */
 #loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #0a0a1a;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    transition: opacity 0.5s, visibility 0.5s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a0a1a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.5s, visibility 0.5s;
 }
 
+/* Icono giratorio */
 .loader-icon {
-    width: 80px;
-    height: 80px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    border-top-color: #4d94ff;
-    animation: spin 1.5s linear infinite;
-    margin-bottom: 20px;
+  width: 80px;
+  height: 80px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #4d94ff;
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 20px;
 }
 
+/* Texto de carga */
 .loader-text {
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-    text-align: center;
-    max-width: 80%;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  text-align: center;
+  max-width: 80%;
 }
 
+/* Barra de progreso */
 .progress-bar {
-    width: 300px;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 20px;
+  width: 300px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #4d94ff, #6a11cb);
-    transition: width 0.3s ease;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4d94ff, #6a11cb);
+  transition: width 0.3s ease;
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
+/* Panel de error */
 #error-panel {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 77, 77, 0.9);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 8px;
-    max-width: 90%;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    z-index: 1001;
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 77, 77, 0.9);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 1001;
 }
 
 .retry-btn {
-    background: #fff;
-    color: #ff4d4d;
-    border: none;
-    padding: 8px 15px;
-    margin-top: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
+  background: #fff;
+  color: #ff4d4d;
+  border: none;
+  padding: 8px 15px;
+  margin-top: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
 }
 
 .retry-btn:hover {
-    background: #f0f0f0;
-    transform: translateY(-2px);
+  background: #f0f0f0;
+  transform: translateY(-2px);
 }
 
+/* Stats panel */
 .stats {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    color: #aaa;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #aaa;
+  z-index: 10;
+}
+
+/* Panel informativo */
+.info-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 300px;
+  z-index: 100;
+}
+
+.info-panel h3 {
+  color: #4d94ff;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #334;
+  padding-bottom: 5px;
+}
+
+.info-panel p {
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.model-type {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.local {
+  background: rgba(77, 148, 255, 0.2);
+  color: #4d94ff;
+}
+
+.drive {
+  background: rgba(106, 17, 203, 0.2);
+  color: #6a11cb;
 }
 
 @media (max-width: 768px) {
-    .loader-text {
-        font-size: 1rem;
-    }
-    
-    .progress-bar {
-        width: 200px;
-    }
-    
-    .loader-icon {
-        width: 60px;
-        height: 60px;
-    }
+  .loader-text {
+    font-size: 1rem;
+  }
+  
+  .progress-bar {
+    width: 200px;
+  }
+  
+  .loader-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .info-panel {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+    bottom: 10px;
+  }
 }
