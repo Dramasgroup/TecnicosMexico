@@ -2,17 +2,19 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Teatro 3D</title>
-  <!-- Si despliegas en GitHub Pages en https://usuario.github.io/TecnicosMexico/,
-       descomenta y ajusta esta línea:
-  <base href="/TecnicosMexico/" />
-  -->
+  <!-- Favicon con emoji -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>">
+  <!-- CSS -->
   <link rel="stylesheet" href="styles.css" />
+  <!-- Font Awesome CDN con integrity corregido -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        integrity="sha512-papZHY...TUw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>">
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Si despliegas en GitHub Pages, ajusta <base href="/TuRepositorio/"> aquí -->
 </head>
 <body>
   <!-- Overlay de carga -->
@@ -26,21 +28,20 @@
     <div id="error-panel"></div>
   </div>
 
-  <!-- Canvas para Three.js -->
+  <!-- Canvas Three.js -->
   <canvas id="scene"></canvas>
-  <!-- Contenedor para Stats (FPS) -->
   <div class="stats" id="stats"></div>
 
   <!-- Panel informativo -->
   <div class="info-panel">
     <h3>Teatro Virtual 3D</h3>
-    <p>Butacas: <span class="model-type local">Carga Local</span></p>
-    <p>Escenario y elementos: <span class="model-type drive">Google Drive</span></p>
-    <p>Usa el ratón para navegar:</p>
+    <p>Butacas: <span class="model-type local">Carga Local/Netlify</span></p>
+    <p>Escenario y elementos: <span class="model-type drive">Remoto/Netlify</span></p>
+    <p>Navegación:</p>
     <p>• Arrastrar para rotar<br>• Rueda para zoom<br>• Botón derecho para mover</p>
   </div>
 
-  <!-- main.js como módulo ES6 -->
+  <!-- main.js como módulo ES -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
