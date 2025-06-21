@@ -26,7 +26,7 @@ let anyModelLoaded = false; // para fallback
 // =============================================
 // Ajusta las rutas y extensiones reales. Asegúrate de que existan.
 const butacasConfig = {
-  path: 'models/butaca-s.glb',
+  path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/butaca-s.glb',
   rows: 8,
   cols: 20,
   spacing: 1.8,
@@ -37,34 +37,34 @@ const butacasConfig = {
 // driveModels: reemplaza con tus URLs o rutas locales
 const driveModels = [
   {
-    name: 'cabina',
-    path: 'models/cabina.glb',
+    name: 'muro1-s',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/muro1-s.glb',
     position: [0, 1.5, -25],
     rotation: [0, Math.PI, 0],
     scale: [1, 1, 1]
   },
   {
     name: 'techopar',
-    path: 'models/techopar-s.glb',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/techopar-s.glb',
     position: [0, 25, 0],
     rotation: [0, Math.PI, 0],
     scale: [1, 1, 1]
   },
   {
     name: 'pilar',
-    path: 'models/pilar-s.gltf',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/pilar-s.gltf',
     position: [-12, 0, -5],
     scale: [1, 1, 1]
   },
   {
     name: 'pilariz',
-    path: 'models/pilariz-s.glb',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/pilariz-s.glb',
     position: [12, 0, -15],
     scale: [1, 1, 1]
   },
   {
     name: 'director',
-    path: 'models/dir-s.glb',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/dir-s.glb',
     position: [0, 4.5, -1.5],
     rotation: [0, Math.PI, 0],
     scale: [1, 1, 1]
@@ -77,12 +77,12 @@ const driveModels = [
   },
   {
     name: 'fachada',
-    path: 'models/fachada.glb',
+    path: 'https://6855fa47bf93d905f9d903c6--marvelous-tarsier-76efb4.netlify.app/asdf.glb',
     position: [0, 15, -25],
     scale: [1, 1, 1]
   },
   {
-    name: 'focos',
+    name: 'mur2-',
     path: 'models/focos.glb',
     position: [0, 5.5, -1.5],
     scale: [0.8, 0.8, 0.8]
